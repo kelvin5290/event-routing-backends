@@ -25,7 +25,21 @@ class BaseEnrollmentTransformer(XApiTransformer):
         """
 
         return None
+    def extract_username_or_userid(self):
+        """
+        Extracts username or user_id from event by finding it in context first and falling back to data
+        if context does have username key
 
+        Returns:
+            str
+        """
+        username_or_id = self.get_data('context.username') or self.get_data('context.user_id')
+        if not username_or_id:
+            username_or_id = self.get_data('username') or self.get_data('user_id') 
+            if not username_or_id:
+                username_or_id = self.get_data('data.username') or self.get_data('data.user_id')
+        return username_or_id
+        
     @openedx_filter(filter_type="event_routing_backends.processors.xapi.enrollment_events.base_enrollment.get_object")
     def get_object(self):
         """
