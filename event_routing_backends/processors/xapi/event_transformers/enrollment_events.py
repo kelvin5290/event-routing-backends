@@ -9,6 +9,9 @@ from event_routing_backends.processors.openedx_filters.decorators import openedx
 from event_routing_backends.processors.xapi import constants
 from event_routing_backends.processors.xapi.registry import XApiTransformersRegistry
 from event_routing_backends.processors.xapi.transformer import XApiTransformer
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 class BaseEnrollmentTransformer(XApiTransformer):
@@ -33,6 +36,9 @@ class BaseEnrollmentTransformer(XApiTransformer):
         Returns:
             str
         """
+        logger.info(self.get_data('context') )
+        logger.info(self.get_data('data') )
+        
         username_or_id = self.get_data('context.username') or self.get_data('context.user_id')
         if not username_or_id:
             username_or_id = self.get_data('username') or self.get_data('user_id') 
