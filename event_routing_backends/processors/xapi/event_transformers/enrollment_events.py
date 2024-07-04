@@ -39,11 +39,12 @@ class BaseEnrollmentTransformer(XApiTransformer):
         logger.info(self.get_data('context') )
         logger.info(self.get_data('data') )
         
-        username_or_id = self.get_data('context.username') or self.get_data('context.user_id')
+        
+        username_or_id = self.get_data('data.username') or self.get_data('data.user_id')
         if not username_or_id:
             username_or_id = self.get_data('username') or self.get_data('user_id') 
             if not username_or_id:
-                username_or_id = self.get_data('data.username') or self.get_data('data.user_id')
+                username_or_id = self.get_data('context.username') or self.get_data('context.user_id')
         return username_or_id
         
     @openedx_filter(filter_type="event_routing_backends.processors.xapi.enrollment_events.base_enrollment.get_object")
