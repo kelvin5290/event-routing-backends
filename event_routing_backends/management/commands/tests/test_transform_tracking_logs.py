@@ -7,9 +7,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core.management import call_command
+from django.test.utils import override_settings
+from eventtracking.backends.async_routing import AsyncRoutingBackend
+from eventtracking.backends.event_bus import EventBusRoutingBackend
+from eventtracking.django.django_tracker import override_default_tracker
+from eventtracking.tracker import get_tracker
 from libcloud.storage.types import ContainerDoesNotExistError
 
 import event_routing_backends.management.commands.transform_tracking_logs as transform_tracking_logs
+from event_routing_backends.backends.events_router import EventsRouter
 from event_routing_backends.management.commands.helpers.queued_sender import QueuedSender
 from event_routing_backends.management.commands.transform_tracking_logs import (
     _get_chunks,
@@ -18,6 +24,11 @@ from event_routing_backends.management.commands.transform_tracking_logs import (
     get_source_config_from_options,
     validate_source_and_files,
 )
+
+override_default_tracker()
+
+tracker = get_tracker()
+
 
 LOCAL_CONFIG = json.dumps({"key": "/openedx/", "container": "data", "prefix": ""})
 REMOTE_CONFIG = json.dumps({
@@ -37,11 +48,9 @@ def mock_common_calls():
     Mock out calls that we test elsewhere and aren't relevant to the command tests.
     """
     command_path = "event_routing_backends.management.commands.transform_tracking_logs"
-    helper_path = "event_routing_backends.management.commands.helpers"
     with patch(command_path+".Provider") as mock_libcloud_provider:
         with patch(command_path+".get_driver") as mock_libcloud_get_driver:
-            with patch(helper_path + ".queued_sender.EventsRouter") as mock_eventsrouter:
-                yield mock_libcloud_provider, mock_libcloud_get_driver, mock_eventsrouter
+            yield mock_libcloud_provider, mock_libcloud_get_driver
 
 
 def command_options():
@@ -67,6 +76,7 @@ def command_options():
                     "Sending to LRS!"
                 ]
             },
+            "registry_mapping": {"problem_check": 1},
         },
         # Remote file to LRS dry run no batch size
         {
@@ -85,6 +95,7 @@ def command_options():
                     "Queued 2 log lines, could not parse 2 log lines, skipped 8 log lines, sent 0 batches.",
                 ]
             },
+            "registry_mapping": {"problem_check": 1},
         },
         # Remote file to LRS, default batch size
         {
@@ -103,6 +114,7 @@ def command_options():
                     "Queued 2 log lines, could not parse 2 log lines, skipped 8 log lines, sent 1 batches.",
                 ]
             },
+            "whitelist": ["problem_check"]
         },
         # Local file to remote file
         {
@@ -126,6 +138,7 @@ def command_options():
                     "Queued 2 log lines, could not parse 2 log lines, skipped 8 log lines, sent 2 batches.",
                 ]
             },
+            "whitelist": ["problem_check"]
         },
         # Remote file dry run
         {
@@ -148,6 +161,7 @@ def command_options():
                     "Queued 2 log lines, could not parse 2 log lines, skipped 8 log lines, sent 0 batches.",
                 ]
             },
+            "whitelist": ["problem_check"]
         },
     ]
 
@@ -180,7 +194,7 @@ def test_transform_command(command_opts, mock_common_calls, caplog, capsys):
     """
     Test the command and QueuedSender with a variety of options.
     """
-    mock_libcloud_provider, mock_libcloud_get_driver, mock_eventsrouter = mock_common_calls
+    mock_libcloud_provider, mock_libcloud_get_driver = mock_common_calls
 
     expected_results = command_opts.pop("expected_results")
     transform_tracking_logs.CHUNK_SIZE = command_opts.pop("chunk_size", 1024*1024*2)
@@ -199,18 +213,20 @@ def test_transform_command(command_opts, mock_common_calls, caplog, capsys):
 
     mm2 = MagicMock()
     # Fake a router mapping so some events in the log are actually processed
-    mm2.registry.mapping = {"problem_check": 1}
+    if command_opts.get("registry_mapping"):
+        mm2.registry.mapping = command_opts.pop("registry_mapping")
+    if command_opts.get("whitelist"):
+        mm2.whitelist = command_opts.pop("whitelist")
     # Fake a process response that can be serialized to json
     mm2.return_value = {"foo": "bar"}
-    mock_eventsrouter.return_value.processors = [mm2]
+    tracker.backends["event_transformer"].processors = [mm2]
+    for backend in tracker.backends["event_transformer"].backends.values():
+        backend.bulk_send = MagicMock()
 
     call_command(
         'transform_tracking_logs',
         **command_opts
     )
-
-    # Router should only be set up once
-    assert mock_eventsrouter.call_count == 1
 
     captured = capsys.readouterr()
     print(captured.out)
@@ -290,7 +306,7 @@ def test_invalid_libcloud_source_driver(capsys, mock_common_calls):
     """
     Check error cases when non-existent libcloud drivers are passed in.
     """
-    mock_libcloud_provider, mock_libcloud_get_driver, mock_eventsrouter = mock_common_calls
+    mock_libcloud_provider, mock_libcloud_get_driver = mock_common_calls
 
     mock_libcloud_get_driver.side_effect = [AttributeError(), MagicMock()]
 
@@ -303,7 +319,7 @@ def test_invalid_libcloud_source_driver(capsys, mock_common_calls):
 
 
 def test_invalid_libcloud_dest_driver(capsys, mock_common_calls):
-    mock_libcloud_provider, mock_libcloud_get_driver, mock_eventsrouter = mock_common_calls
+    mock_libcloud_provider, mock_libcloud_get_driver = mock_common_calls
 
     mock_libcloud_get_driver.side_effect = [MagicMock(), AttributeError()]
     with pytest.raises(AttributeError):

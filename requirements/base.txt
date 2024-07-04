@@ -10,21 +10,26 @@ aniso8601==9.0.1
     # via tincan
 apache-libcloud==3.8.0
     # via -r requirements/base.in
-asgiref==3.7.2
+asgiref==3.8.1
     # via django
+async-timeout==4.0.3
+    # via redis
 attrs==23.2.0
     # via openedx-events
-backports-zoneinfo[tzdata]==0.2.1
+backports-zoneinfo[tzdata]==0.2.1 ; python_version < "3.9"
     # via
+    #   -c requirements/constraints.txt
     #   celery
+    #   django
+    #   djangorestframework
     #   kombu
 billiard==4.2.0
     # via celery
-celery==5.3.6
+celery==5.4.0
     # via
     #   edx-celeryutils
     #   event-tracking
-certifi==2024.2.2
+certifi==2024.6.2
     # via requests
 cffi==1.16.0
     # via
@@ -40,17 +45,17 @@ click==8.1.7
     #   click-repl
     #   code-annotations
     #   edx-django-utils
-click-didyoumean==0.3.0
+click-didyoumean==0.3.1
     # via celery
 click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-code-annotations==1.6.0
+code-annotations==1.8.0
     # via edx-toggles
-cryptography==42.0.3
+cryptography==42.0.8
     # via django-fernet-fields-v2
-django==3.2.24
+django==4.2.13
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -58,6 +63,7 @@ django==3.2.24
     #   django-crum
     #   django-fernet-fields-v2
     #   django-model-utils
+    #   django-redis
     #   django-waffle
     #   djangorestframework
     #   edx-celeryutils
@@ -67,7 +73,7 @@ django==3.2.24
     #   jsonfield
     #   openedx-events
     #   openedx-filters
-django-config-models==2.5.1
+django-config-models==2.7.0
     # via -r requirements/base.in
 django-crum==0.7.9
     # via
@@ -75,61 +81,69 @@ django-crum==0.7.9
     #   edx-toggles
 django-fernet-fields-v2==0.9
     # via -r requirements/base.in
-django-model-utils==4.4.0
+django-model-utils==4.5.1
     # via edx-celeryutils
+django-redis==5.4.0
+    # via -r requirements/base.in
 django-waffle==4.1.0
     # via
     #   edx-django-utils
     #   edx-toggles
-djangorestframework==3.14.0
+djangorestframework==3.15.1
     # via django-config-models
-edx-celeryutils==1.2.5
+edx-ccx-keys==1.3.0
+    # via openedx-events
+edx-celeryutils==1.3.0
     # via -r requirements/base.in
-edx-django-utils==5.10.1
+edx-django-utils==5.14.2
     # via
     #   django-config-models
     #   edx-toggles
     #   event-tracking
     #   openedx-events
-edx-opaque-keys[django]==2.5.1
-    # via openedx-events
-edx-toggles==5.1.1
+edx-opaque-keys[django]==2.9.0
+    # via
+    #   edx-ccx-keys
+    #   openedx-events
+edx-toggles==5.2.0
     # via
     #   -r requirements/base.in
     #   event-tracking
-event-tracking==2.3.0
-    # via -r requirements/base.in
+event-tracking==2.4.0
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/base.in
 fastavro==1.9.4
     # via openedx-events
 fasteners==0.19
     # via -r requirements/base.in
-idna==3.6
+idna==3.7
     # via requests
 isodate==0.6.1
     # via -r requirements/base.in
-jinja2==3.1.3
+jinja2==3.1.4
     # via code-annotations
 jsonfield==3.1.0
     # via
     #   -r requirements/base.in
     #   edx-celeryutils
-kombu==5.3.5
+kombu==5.3.7
     # via celery
 markupsafe==2.1.5
     # via jinja2
-newrelic==9.6.0
+newrelic==9.10.0
     # via edx-django-utils
-openedx-events==9.5.1
+openedx-events==9.10.0
     # via event-tracking
-openedx-filters==1.6.0
+openedx-filters==1.8.1
     # via -r requirements/base.in
 pbr==6.0.0
     # via stevedore
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.46
     # via click-repl
 psutil==5.9.8
     # via edx-django-utils
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pymongo==3.13.0
     # via
@@ -137,7 +151,7 @@ pymongo==3.13.0
     #   event-tracking
 pynacl==1.5.0
     # via edx-django-utils
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via
     #   -r requirements/base.in
     #   celery
@@ -146,24 +160,25 @@ python-slugify==8.0.4
 pytz==2024.1
     # via
     #   -r requirements/base.in
-    #   django
-    #   djangorestframework
     #   event-tracking
     #   tincan
 pyyaml==6.0.1
     # via code-annotations
-requests==2.31.0
+redis==5.0.4
+    # via django-redis
+requests==2.32.3
     # via
     #   -r requirements/base.in
     #   apache-libcloud
 six==1.16.0
     # via
+    #   edx-ccx-keys
     #   event-tracking
     #   isodate
     #   python-dateutil
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via django
-stevedore==5.1.0
+stevedore==5.2.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -172,7 +187,7 @@ text-unidecode==1.3
     # via python-slugify
 tincan==1.0.0
     # via -r requirements/base.in
-typing-extensions==4.9.0
+typing-extensions==4.12.1
     # via
     #   asgiref
     #   edx-opaque-keys
@@ -181,7 +196,7 @@ tzdata==2024.1
     # via
     #   backports-zoneinfo
     #   celery
-urllib3==2.2.0
+urllib3==2.2.1
     # via requests
 vine==5.1.0
     # via
@@ -190,3 +205,6 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.13
     # via prompt-toolkit
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

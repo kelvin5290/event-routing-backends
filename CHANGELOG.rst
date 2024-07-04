@@ -11,8 +11,39 @@ Change Log
 
 .. There should always be an "Unreleased" section for changes pending release.
 
-Unreleased
-~~~~~~~~~~
+[9.3.0]
+
+* Support use of ERB for transforming non-openedx events
+
+[9.2.1]
+
+* Add support for either 'whitelist' or 'registry.mapping' options (whitelist introduced in v9.0.0)
+
+[9.2.0]
+
+* Add discussion reference to comments and responses xAPI events
+
+[9.1.0]
+
+* Add python 3.11 and 3.12 support
+
+[9.0.1]
+
+* Fix an issue with the event routing backend async task to not find the event-tracking backend.
+
+[9.0.0]
+~~~~~~~
+
+* **BREAKING CHANGE**: Use a single entry point for all event routing backends.
+  which allows to easily switch bettwen celery and the event bus for the backends.
+
+[8.3.0]
+
+* Allow to use any configured engine to replay tracking logs
+
+[8.2.0]
+
+* Add support for batching for EventsRouter.
 
 [8.1.2]
 
